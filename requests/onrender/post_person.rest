@@ -1,0 +1,7 @@
+POST https://mdan22-fsc.onrender.com/api/persons
+Content-Type: application/json
+
+{
+    "name": "juice",
+    "number": "223-3456789"
+}
