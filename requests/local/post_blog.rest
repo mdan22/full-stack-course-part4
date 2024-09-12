@@ -1,4 +1,4 @@
-POST https://mdan22-fsc4.onrender.com/api/blogs
+POST http://localhost:3001/api/blogs
 Content-Type: application/json
 
 {
