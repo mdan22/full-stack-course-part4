@@ -2,8 +2,8 @@ POST http://localhost:3001/api/blogs
 Content-Type: application/json
 
 {
-    "title": "Check Out This Full Stack Course!!!",
-    "author": "Mdan22",
-    "url": "https://fullstackopen.com/en/",
+    "title": "Hello, Blog!",
+    "author": "Akira Taguchi",
+    "url": "https://akirataguchi115.github.io/misc/2023/12/31/hello-blog.html",
     "likes": 0
 }
