@@ -37,21 +37,43 @@ const mostBlogs = (blogs) => {
   const groupedBlogs = _.groupBy(blogs, 'author')
 
   // find the author with most blogs using lodash's .maxBy function by comparing each author group length
-  const mostBlogsauthor = _.maxBy(Object.keys(groupedBlogs), (author) => groupedBlogs[author].length)
+  // We need Object.keys because _.maxBy expects an array of objects, not an object
+  // groupedBlogs is an object where the keys are author names and the values are arrays of blogs.
+  const mostBlogsAuthor = _.maxBy(Object.keys(groupedBlogs), (author) => groupedBlogs[author].length)
 
   // return object of that author with attributes 'author' and 'blogs'
   return blogs.length === 0
     ? {} :
     {
-      author: mostBlogsauthor,
-      blogs: groupedBlogs[mostBlogsauthor].length
+      author: mostBlogsAuthor,
+      blogs: groupedBlogs[mostBlogsAuthor].length
     }
+}
+
+// function that receives an array of blog posts
+// and returns the author with the most likes
+// and the sum of his blogs' likes
+const mostLikes = (blogs) => {
+  // group blogs by author using lodash's .groupBy function
+  const groupedBlogs = _.groupBy(blogs, 'author')
+
+  // create an array that contains overall like count 'likes' of all blogs for each author
+  const likesPerAuthor = _.map(groupedBlogs, (blogGroup, author) => ({
+    author: author,
+    likes: _.sumBy(blogGroup, 'likes')
+  }))
+
+  // find the author with most blogs using lodash's .maxBy function by comparing each author group likes
+  const mostLikesAuthor = _.maxBy(likesPerAuthor, 'likes')
+
+  return blogs.length === 0 ? {} : mostLikesAuthor
 }
 
 const list_helper = {
   totalLikes,
   favoriteLikes,
-  mostBlogs
+  mostBlogs,
+  mostLikes
 }
 
 module.exports = list_helper

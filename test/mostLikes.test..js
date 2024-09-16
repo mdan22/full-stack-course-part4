@@ -1,4 +1,4 @@
-// mostBlogs.test.js contains tests for function 'mostBlogs'
+// mostLikes.test.js contains tests for function 'mostLikes'
 // tests are written using Node.js's built-in assert module
 
 const { test, describe } = require('node:test')
@@ -6,7 +6,7 @@ const assert = require('node:assert')
 const listHelper = require('../utils/list_helper')
 
 // using a describe block to group tests into a logical collection
-describe('most blogs', () => {
+describe('most likes', () => {
   const emptyList = []
 
   const listWithOneBlog = [
@@ -66,36 +66,36 @@ describe('most blogs', () => {
   ]
 
   test('of empty list is also an empty list', () => {
-    const result = listHelper.mostBlogs(emptyList)
+    const result = listHelper.mostLikes(emptyList)
     assert.deepStrictEqual( result, {})
   })
 
-  test('when list has only one blog, equals that author and blog count 1', () => {
-    const result = listHelper.mostBlogs(listWithOneBlog)
+  test('when list has only one blog, equals that blog\'s author and that blog\'s likes', () => {
+    const result = listHelper.mostLikes(listWithOneBlog)
     assert.deepStrictEqual( result,
       {
         author: 'Edsger W. Dijkstra',
-        blogs: 1
+        likes: 5
       }
     )
   })
 
-  test('when list has multiple blogs of one author, equals that author and their blog count', () => {
-    const result = listHelper.mostBlogs(biggerListSameAuthor)
+  test('when list has multiple blogs of one author, equals that author and the sum of their blog likes', () => {
+    const result = listHelper.mostLikes(biggerListSameAuthor)
     assert.deepStrictEqual( result,
       {
         author: 'Akira Taguchi',
-        blogs: 2
+        likes: 13
       }
     )
   })
 
-  test('of bigger list finds the right author and their blog count', () => {
-    const result = listHelper.mostBlogs(biggerListDiffAuthors)
+  test('of bigger list finds the right author calculates the correct sum of their blog likes', () => {
+    const result = listHelper.mostLikes(biggerListDiffAuthors)
     assert.deepStrictEqual( result,
       {
         author: 'Akira Taguchi',
-        blogs: 2
+        likes: 13
       }
     )
   })
