@@ -41,6 +41,22 @@ test('all blogs are returned correctly and in the json format', async () => {
   assert.strictEqual(response.body.length, helper.initialBlogs.length)
 })
 
+// 4.9: Blog List Tests, step 2
+// Verify that the unique identifier property of the
+// blog posts is named id, by default the database
+// names the property _id
+test('all blogs have a property named id, but not _id', async () => {
+  const response =
+  await api
+    .get('/api/blogs')
+
+  const blogs = response.body
+  blogs.forEach(blog => {
+    assert(blog.id)
+    assert(!blog._id) // could be skipped but done for clarity
+  })
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
