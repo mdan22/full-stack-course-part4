@@ -12,6 +12,11 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', async (request, response) => {
   const blog = new Blog(request.body)
 
+  // handle missing title or url for 4.12*
+  if (!blog.title || !blog.url ) {
+    response.status(400).end()
+  }
+
   const savedBlog = await blog.save()
 
   response.status(201).json(savedBlog)

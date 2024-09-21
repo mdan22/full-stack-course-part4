@@ -4,9 +4,9 @@
 const mongoose = require('mongoose')
 
 const blogSchema = new mongoose.Schema({
-  title: String,
+  title: { type: String, required: true }, // added required for 4.12*
   author: String,
-  url: String,
+  url: { type: String, required: true }, // added required for 4.12*
   likes: { type: Number, default: 0 } // added default value for 4.11*
 })
 

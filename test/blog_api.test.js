@@ -120,6 +120,44 @@ test('like property missing results in value 0', async () => {
   assert.strictEqual(blogsAtEnd[blogsAtEnd.length - 1].likes, 0)
 })
 
+// 4.12*: Blog List tests, step 5
+// Verify that if the title or url properties are missing
+// from the request data, the backend responds with the
+// status code 400 Bad Request
+test('title or url properties missing result in status code 400 Bad Request', async () => {
+  const newBlogNoTitle =     {
+    'author': 'Akira Taguchi',
+    'url': 'https://akirataguchi115.github.io/misc/2023/12/31/hello-blog.html'
+  }
+
+  const newBlogNoUrl =     {
+    'title': 'Hello, Blog!',
+    'author': 'Akira Taguchi',
+  }
+
+  const newBlogOnlyAuthor =     {
+    'author': 'Akira Taguchi',
+  }
+
+  // make HTTP POST request without title
+  await api
+    .post('/api/blogs')
+    .send(newBlogNoTitle)
+    .expect(400) // bad request
+
+  // make HTTP POST request without url
+  await api
+    .post('/api/blogs')
+    .send(newBlogNoUrl)
+    .expect(400) // bad request
+
+  // make HTTP POST request with missing title and url
+  await api
+    .post('/api/blogs')
+    .send(newBlogOnlyAuthor)
+    .expect(400) // bad request
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
