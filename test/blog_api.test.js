@@ -80,13 +80,44 @@ test('a valid blog can be added', async () => {
     .expect(201) // content created
     .expect('Content-Type', /application\/json/)
 
-  // verify that the total number of blogs in the system is increased by one
+  // verify that the total number of blogs in the system
+  // is increased by one
   const blogsAtEnd = await helper.blogsInDb()
   assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
 
   // verify that the added blog is in DB
   const titles = blogsAtEnd.map(blog => blog.title)
   assert(titles.includes('How to install Windows'))
+})
+
+// 4.11*: Blog List Tests, step 4
+// Verify that if the likes property is missing from
+// the request, it will default to the value zero
+test('like property missing results in value 0', async () => {
+  const newBlog =     {
+    'title': 'Hello, Blog!',
+    'author': 'Akira Taguchi',
+    'url': 'https://akirataguchi115.github.io/misc/2023/12/31/hello-blog.html'
+  }
+
+  // make the HTTP POST request
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201) // content created
+    .expect('Content-Type', /application\/json/)
+
+  // verify that the total number of blogs in the system
+  // is increased by one
+  const blogsAtEnd = await helper.blogsInDb()
+  assert.deepStrictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
+
+  // verify that the added blog is in DB
+  const titles = blogsAtEnd.map(blog => blog.title)
+  assert(titles.includes('Hello, Blog!'))
+
+  // verify that the likes property is set to 0
+  assert.strictEqual(blogsAtEnd[blogsAtEnd.length - 1].likes, 0)
 })
 
 after(async () => {
