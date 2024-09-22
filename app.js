@@ -31,7 +31,7 @@ app.use(cors())
 app.use(express.json())
 
 // has to be placed before the route handlers
-app.use(middleware.requestLogger)
+// app.use(middleware.requestLogger) // but toggled this so the console doesn't get bloated
 
 app.use('/api/blogs', blogsRouter)
 

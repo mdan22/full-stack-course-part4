@@ -28,7 +28,7 @@ describe('when there is initially some blogs saved', async () => {
     const response =
     await api
       .get('/api/blogs')
-      .expect(200)
+      .expect(200) // ok
       .expect('Content-Type', /application\/json/)
 
     // execution gets here only after the HTTP request is complete
@@ -161,18 +161,18 @@ describe('when there is initially some blogs saved', async () => {
   describe('deletion of a blog', () => {
     test('succeeds with status code 204 if id is valid and exists', async () => {
       const blogsAtStart = await helper.blogsInDb()
-      const blogToDelete = blogsAtStart[0]
+      const blogToUpdate = blogsAtStart[0]
 
       await api
-        .delete(`/api/blogs/${blogToDelete.id}`)
-        .expect(204)
+        .delete(`/api/blogs/${blogToUpdate.id}`)
+        .expect(204) // no content
 
       const blogsAtEnd = await helper.blogsInDb()
       // using notesAtStart here (instead of helper.initialNotes) so the test dynamically adapts to the current state of the database
       assert.strictEqual(blogsAtStart.length - 1, blogsAtEnd.length)
 
       const titles = blogsAtEnd.map(b => b.title)
-      assert(!titles.includes(blogToDelete.title))
+      assert(!titles.includes(blogToUpdate.title))
     })
 
     test('results in status code 400 if id is invalid', async () => {
@@ -181,7 +181,7 @@ describe('when there is initially some blogs saved', async () => {
 
       await api
         .delete(`/api/blogs/${invalidId}`)
-        .expect(400)
+        .expect(400) // bad request
 
       const blogsAtEnd = await helper.blogsInDb()
       // using notesAtStart here (instead of helper.initialNotes) so the test dynamically adapts to the current state of the database
@@ -194,11 +194,51 @@ describe('when there is initially some blogs saved', async () => {
 
       await api
         .delete(`/api/blogs/${validNonExistentId}`)
-        .expect(204)
+        .expect(204) // no content
 
       const blogsAtEnd = await helper.blogsInDb()
       // using notesAtStart here (instead of helper.initialNotes) so the test dynamically adapts to the current state of the database
       assert.strictEqual(blogsAtStart.length, blogsAtEnd.length)
+    })
+  })
+  describe('update of a blog', () => {
+    test('succeeds with status code 200 if id is valid and exists', async () => {
+      const blogsAtStart = await helper.blogsInDb()
+      const blogToUpdate = blogsAtStart[0]
+
+      const updatedBlogData = {
+        title: blogToUpdate.title,
+        author: blogToUpdate.author,
+        url: blogToUpdate.url,
+        likes: blogToUpdate.likes + 1 // increment likes
+      }
+
+      const response = await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(updatedBlogData)
+        .expect(200) // ok
+        .expect('Content-Type', /application\/json/)
+
+      const updatedBlog = response.body
+      assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 1)
+    })
+
+    test('results in status code 400 if id is invalid', async () => {
+      const invalidId = '5a3d5da59070081a82a3445'
+
+      await api
+        .put(`/api/blogs/${invalidId}`)
+        .send({})
+        .expect(400) // bad request
+    })
+
+    test('results in status code 404 if id is valid but blog doesn\'t exist', async () => {
+      const validNonExistentId = '66efbe933f0982d6deec6924'
+
+      await api
+        .put(`/api/blogs/${validNonExistentId}`)
+        .send({})
+        .expect(404) // not found
     })
   })
 })
