@@ -13,10 +13,18 @@ usersRouter.post('/', async (request, response) => {
   const { username, name, password } = request.body
 
   // Add password validation
-  // more validation could be added here later
-  if (!password ) {
+  // check password length
+  if (!password || password.length < 3) {
     return response.status(400).json({
-      error: '`password` is required'
+      error: '`password` is required and `password` must be at least 3 characters long'
+    })
+  }
+
+  // Add username validation
+  // check username length
+  if (!username || username.length < 3) {
+    return response.status(400).json({
+      error: '`username` is required and `username` must be at least 3 characters long'
     })
   }
 

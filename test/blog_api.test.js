@@ -256,6 +256,7 @@ describe('when there is initially one user in db', async () => {
     await user.save()
   })
 
+  // for 4.15: Blog List Expansion, step 3
   test('creation succeeds with a fresh username', async () => {
     const userAtStart = await helper.usersInDb()
 
@@ -278,6 +279,7 @@ describe('when there is initially one user in db', async () => {
     assert(usernames.includes(newUser.username))
   })
 
+  // for 4.15: Blog List Expansion, step 3
   test('creation fails with proper statuscode and message if username already taken', async () => {
     const usersAtStart = await helper.usersInDb()
 
@@ -299,6 +301,7 @@ describe('when there is initially one user in db', async () => {
     assert.strictEqual(usersAtStart.length, usersAtEnd.length)
   })
 
+  // for 4.16*: Blog List Expansion, step 4
   test('creation fails with proper statuscode and message if username is missing', async () => {
     const usersAtStart = await helper.usersInDb()
 
@@ -319,6 +322,7 @@ describe('when there is initially one user in db', async () => {
     assert.strictEqual(usersAtStart.length, usersAtEnd.length)
   })
 
+  // for 4.16*: Blog List Expansion, step 4
   test('creation fails with proper statuscode and message if password is missing', async () => {
     const usersAtStart = await helper.usersInDb()
 
@@ -339,6 +343,7 @@ describe('when there is initially one user in db', async () => {
     assert.strictEqual(usersAtStart.length, usersAtEnd.length)
   })
 
+  // for 4.16*: Blog List Expansion, step 4
   test('creation fails with proper statuscode and message if name is missing', async () => {
     const usersAtStart = await helper.usersInDb()
 
@@ -358,6 +363,47 @@ describe('when there is initially one user in db', async () => {
     assert.strictEqual(usersAtStart.length, usersAtEnd.length)
   })
 
+  // for 4.16*: Blog List Expansion, step 4
+  test('creation fails with proper statuscode and message if password is less than 3 characters long', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'superuser',
+      name: 'Superuser',
+      password: 'se',
+    }
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert(result.body.error.includes('`password` must be at least 3 characters long'))
+
+    assert.strictEqual(usersAtStart.length, usersAtEnd.length)
+  })
+
+  // for 4.16*: Blog List Expansion, step 4
+  test('creation fails with proper statuscode and message if username is less than 3 characters long', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'su',
+      name: 'Superuser',
+      password: 'sekret',
+    }
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert(result.body.error.includes('`username` must be at least 3 characters long'))
+
+    assert.strictEqual(usersAtStart.length, usersAtEnd.length)
+  })
 })
 
 after(async () => {
