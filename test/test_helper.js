@@ -41,13 +41,19 @@ const initialBlogs = [
 ]
 
 // can be used for creating a database object ID that
-// does not belong to any blog objec in DB
+// does not belong to any blog object in DB
 const nonExistingId = async () => {
-  const blog = new Blog({ title: 'willremovethissoon' })
+  const blog = new Blog({
+    title: 'willremovethissoon',
+    url: 'http://www.u.arizona.edu/willremovethissoon',
+  })
   await blog.save()
+
+  const id = blog._id
+
   await blog.deleteOne()
 
-  return blog._id.toJSON
+  return id.toJSON()
 }
 
 // can be used for checking the blogs stored in DB

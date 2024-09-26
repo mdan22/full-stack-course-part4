@@ -1,15 +1,10 @@
 const { test, after, beforeEach, describe } = require('node:test')
 const assert = require('node:assert')
-
 const supertest = require('supertest')
 const mongoose = require('mongoose')
 const helper = require('./test_helper')
-
-// imports the express application from app.js
 const app = require('../app')
-// wraps the app with supertest function into a superagent object
 const api = supertest(app)
-// now tests can use the api var for making HTTP requests to the backend
 
 const Blog = require('../models/blog')
 
@@ -18,8 +13,24 @@ const User = require('../models/user')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
-  // insertMany instead of for of loop to make code simpler
-  await Blog.insertMany(helper.initialBlogs)
+  await User.deleteMany({})
+
+  // Create a test user
+  const hash = await bcrypt.hash('sekret', 10)
+
+  const user = new User({
+    username: 'testuser',
+    name: 'Test User',
+    passwordHash: hash
+  })
+  await user.save()
+
+  const blogObjects = helper.initialBlogs
+    .map(blog => new Blog({
+      ...blog,
+      user: user._id
+    }))
+  await Blog.insertMany(blogObjects)
 })
 
 describe('when there is initially some blogs saved', async () => {
@@ -64,9 +75,6 @@ describe('when there is initially some blogs saved', async () => {
   })
 
   describe('addition of a new blog', () => {
-    // 4.10: Blog List Test, step 3
-    // Verify that making a HTTP POST request for the
-    // /api/blogs URL successfully creates a new blog post
     test('a valid blog can be added', async () => {
       const newBlog = {
         'title': 'How to install Windows',
@@ -75,51 +83,36 @@ describe('when there is initially some blogs saved', async () => {
         'likes': 7
       }
 
-      // make the HTTP POST request
       await api
         .post('/api/blogs')
         .send(newBlog)
-        .expect(201) // content created
+        .expect(201)
         .expect('Content-Type', /application\/json/)
 
-      // verify that the total number of blogs in the system
-      // is increased by one
       const blogsAtEnd = await helper.blogsInDb()
       assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
 
-      // verify that the added blog is in DB
       const titles = blogsAtEnd.map(blog => blog.title)
       assert(titles.includes('How to install Windows'))
     })
 
-    // 4.11*: Blog List Tests, step 4
-    // Verify that if the likes property is missing from
-    // the request, it will default to the value zero
     test('like property missing results in value 0', async () => {
-      const newBlog =     {
+      const newBlog = {
         'title': 'Hello, Blog!',
         'author': 'Akira Taguchi',
         'url': 'https://akirataguchi115.github.io/misc/2023/12/31/hello-blog.html'
       }
 
-      // make the HTTP POST request
-      await api
+      const response = await api
         .post('/api/blogs')
         .send(newBlog)
-        .expect(201) // content created
+        .expect(201)
         .expect('Content-Type', /application\/json/)
 
-      // verify that the total number of blogs in the system
-      // is increased by one
+      assert.strictEqual(response.body.likes, 0)
+
       const blogsAtEnd = await helper.blogsInDb()
-      assert.deepStrictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
-
-      // verify that the added blog is in DB
-      const titles = blogsAtEnd.map(blog => blog.title)
-      assert(titles.includes('Hello, Blog!'))
-
-      // verify that the likes property is set to 0
-      assert.strictEqual(blogsAtEnd[blogsAtEnd.length - 1].likes, 0)
+      assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length + 1)
     })
 
     // 4.12*: Blog List tests, step 5
@@ -171,7 +164,7 @@ describe('when there is initially some blogs saved', async () => {
         .expect(204) // no content
 
       const blogsAtEnd = await helper.blogsInDb()
-      // using notesAtStart here (instead of helper.initialNotes) so the test dynamically adapts to the current state of the database
+      // using blogsAtStart here (instead of helper.initialBlogs) so the test dynamically adapts to the current state of the database
       assert.strictEqual(blogsAtStart.length - 1, blogsAtEnd.length)
 
       const titles = blogsAtEnd.map(b => b.title)
@@ -187,7 +180,7 @@ describe('when there is initially some blogs saved', async () => {
         .expect(400) // bad request
 
       const blogsAtEnd = await helper.blogsInDb()
-      // using notesAtStart here (instead of helper.initialNotes) so the test dynamically adapts to the current state of the database
+      // using blogsAtStart here (instead of helper.initialBlogs) so the test dynamically adapts to the current state of the database
       assert.strictEqual(blogsAtStart.length, blogsAtEnd.length)
     })
 
@@ -200,7 +193,7 @@ describe('when there is initially some blogs saved', async () => {
         .expect(204) // no content
 
       const blogsAtEnd = await helper.blogsInDb()
-      // using notesAtStart here (instead of helper.initialNotes) so the test dynamically adapts to the current state of the database
+      // using blogsAtStart here (instead of helper.initialBlogs) so the test dynamically adapts to the current state of the database
       assert.strictEqual(blogsAtStart.length, blogsAtEnd.length)
     })
   })
@@ -403,6 +396,124 @@ describe('when there is initially one user in db', async () => {
     assert(result.body.error.includes('`username` must be at least 3 characters long'))
 
     assert.strictEqual(usersAtStart.length, usersAtEnd.length)
+  })
+})
+
+describe('deletion of a blog', () => {
+  let user
+  let blog
+  beforeEach(async () => {
+    await Blog.deleteMany({})
+    await User.deleteMany({})
+
+    const hash = await bcrypt.hash('secreto', 10)
+
+    user = new User({
+      username: helper.initialBlogs[0].author.replace(/\s+/g, ''),
+      name: helper.initialBlogs[0].author,
+      passwordHash: hash
+    })
+    await user.save()
+
+    blog = new Blog(helper.initialBlogs[0])
+    await blog.save()
+
+    blog.user = user._id
+    await blog.save()
+
+    user.blogs = user.blogs.concat(blog._id)
+    await user.save()
+  })
+
+  test('succeeds with status code 204 if id is valid', async () => {
+    await api
+      .delete(`/api/blogs/${blog.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await Blog.find({})
+    assert.strictEqual(blogsAtEnd.length, 0)
+
+    const userAtEnd = await User.findById(user._id)
+    assert.strictEqual(userAtEnd.blogs.length, 0)
+  })
+
+  test('fails with status code 400 if id is invalid', async () => {
+    const invalidId = 'invalidid'
+
+    await api
+      .delete(`/api/blogs/${invalidId}`)
+      .expect(400)
+
+    const blogsAtEnd = await Blog.find({})
+    assert.strictEqual(blogsAtEnd.length, 1)
+  })
+
+  test('returns status code 204 if id is valid but non-existent', async () => {
+    const nonExistentId = await helper.nonExistingId()
+
+    await api
+      .delete(`/api/blogs/${nonExistentId}`)
+      .expect(204)
+
+    const blogsAtEnd = await Blog.find({})
+    assert.strictEqual(blogsAtEnd.length, 1)
+  })
+})
+
+describe('deletion of a user', () => {
+  let user
+  let userId
+
+  beforeEach(async () => {
+    await User.deleteMany({})
+    await Blog.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    user = new User({ username: 'testuser', name: 'Test User', passwordHash })
+    await user.save()
+    userId = user._id
+
+    const blog = new Blog({
+      title: 'Test Blog',
+      author: 'Test Author',
+      url: 'http://testurl.com',
+      user: user._id
+    })
+    await blog.save()
+  })
+
+  test('succeeds with status code 204 if id is valid and exists', async () => {
+    await api
+      .delete(`/api/users/${userId}`)
+      .expect(204)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, 0)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    assert.strictEqual(blogsAtEnd.length, 0)
+  })
+
+  test('fails with status code 400 if id is invalid', async () => {
+    const invalidId = '12345'
+
+    await api
+      .delete(`/api/users/${invalidId}`)
+      .expect(400)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, 1)
+  })
+
+  test('returns status code 204 if id is valid but non-existent', async () => {
+    const nonExistentId = await helper.nonExistingId()
+
+    await api
+      .delete(`/api/users/${nonExistentId}`)
+      .expect(204)
+
+    const usersAtEnd = await helper.usersInDb()
+    assert.strictEqual(usersAtEnd.length, 1)
   })
 })
 

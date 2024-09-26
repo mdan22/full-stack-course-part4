@@ -5,5 +5,6 @@ Content-Type: application/json
     "title": "Hello, Blog!",
     "author": "Akira Taguchi",
     "url": "https://akirataguchi115.github.io/misc/2023/12/31/hello-blog.html",
-    "likes": 0
+    "likes": 0,
+    "userId": "66f3d2004c716edac78b4ac7"
 }
