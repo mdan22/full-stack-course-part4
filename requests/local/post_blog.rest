@@ -1,11 +1,11 @@
 POST http://localhost:3001/api/blogs
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2NmYzYjdmZGFiMmQ1MGViOGMzZTY2NzEiLCJpYXQiOjE3MjczNzQzMzh9.I69LupsUExM-i6E72hthfqV66uvqIYqpPzfcBMU46Wg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2NmYzYjdmZGFiMmQ1MGViOGMzZTY2NzEiLCJpYXQiOjE3MjczNzQ4ODUsImV4cCI6MTcyNzM3ODQ4NX0.SQjkL3rSK_pWrxG2YUDFhSGPkL26eqpJ94jpQzAL5mo
 
 {
-    "title": "Hello, Blog!",
-    "author": "Akira Taguchi",
-    "url": "https://akirataguchi115.github.io/misc/2023/12/31/hello-blog.html",
+    "title": "Test Blog",
+    "author": "Mdan22",
+    "url": "mdan22.me",
     "likes": 0,
     "userId": "66f3d2004c716edac78b4ac7"
 }
