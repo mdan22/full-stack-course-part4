@@ -49,6 +49,12 @@ blogsRouter.post('/', async (request, response) => {
 blogsRouter.delete('/:id', async (request, response) => {
   const blogId = request.params.id
 
+  // check token validity
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
   const blog = await Blog.findById(blogId)
   // depending on the use case 404 could be used if blog is not found
   // can be moved to the error handler middleware
@@ -56,13 +62,19 @@ blogsRouter.delete('/:id', async (request, response) => {
     return response.status(204).end()
   }
 
-  const user = await User.findById(blog.user)
+  const blogUser = await User.findById(blog.user)
+
+  // we check if the logged in user is the user that posted the blog
+  // if not server responds with 401
+  if ( blog.user.toString() !== decodedToken.id.toString() ) {
+    return response.status(401).end() // unauthorized
+  }
 
   await Blog.findByIdAndDelete(blogId)
 
-  if (user) {
-    user.blogs = user.blogs.filter(b => b.toString() !== blogId)
-    await user.save()
+  if (blogUser) {
+    blogUser.blogs = blogUser.blogs.filter(b => b.toString() !== blogId)
+    await blogUser.save()
   }
 
   response.status(204).end()
