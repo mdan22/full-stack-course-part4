@@ -1,6 +1,8 @@
 // middleware.js contains the middleware functions
 
 const logger = require('./logger')
+const jwt = require('jsonwebtoken')
+const User = require('../models/user')
 
 const requestLogger = (request, response, next) => {
   logger.info('Method:', request.method)
@@ -34,6 +36,7 @@ const errorHandler = (error, request, response, next) => {
 
 // extracts token from request header
 // and updates request.token to the extracted token
+// only used in post and delete operations of blogs.js
 const tokenExtractor = (request, response, next) => {
   const authorization = request.get('authorization')
   if (authorization && authorization.startsWith('Bearer ')) {
@@ -45,11 +48,23 @@ const tokenExtractor = (request, response, next) => {
   next()
 }
 
+// this middleware finds the user holding a specific token
+// for blogs.js handlers of post and delete operations
+const userExtractor = async (request, response, next) => {
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+  request.user = await User.findById(decodedToken.id)
+  next()
+}
+
 const middleware  = {
   requestLogger,
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
+  userExtractor,
 }
 
 module.exports = middleware

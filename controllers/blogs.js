@@ -1,7 +1,7 @@
 const User = require('../models/user')
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const jwt = require('jsonwebtoken')
+const middleware = require('../utils/middleware')
 
 blogsRouter.get('/', async (request, response) => {
   // use populate() to 'join' user and blogs
@@ -17,22 +17,19 @@ blogsRouter.get('/', async (request, response) => {
 // Tested with REST CLient:
 // - user is then visible within the blog object
 // - blogs are visible within the user object
-blogsRouter.post('/', async (request, response) => {
+blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   const body = request.body
 
-  // check token validity
-  const decodedToken = jwt.verify(request.token, process.env.SECRET)
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token invalid' })
-  }
-  const user = await User.findById(decodedToken.id)
+  // token extraction from header moved into its own middleware 'tokenExtractor'
+  // check token validity moved into seperate middleware 'userExtractor'
+  const user = request.user
 
   const blog = new Blog({
     title: body.title,
     author: body.author || '',
     url: body.url,
     likes: body.likes || 0,
-    // set blog's user id
+    // set user id of the blog's creator
     user: user._id
   })
 
@@ -46,14 +43,11 @@ blogsRouter.post('/', async (request, response) => {
 })
 
 // adjusting the delete operation wasn't required but did it anyways
-blogsRouter.delete('/:id', async (request, response) => {
+blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
   const blogId = request.params.id
 
   // check token validity
-  const decodedToken = jwt.verify(request.token, process.env.SECRET)
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token invalid' })
-  }
+  const user = request.user
 
   const blog = await Blog.findById(blogId)
   // depending on the use case 404 could be used if blog is not found
@@ -66,7 +60,7 @@ blogsRouter.delete('/:id', async (request, response) => {
 
   // we check if the logged in user is the user that posted the blog
   // if not server responds with 401
-  if ( blog.user.toString() !== decodedToken.id.toString() ) {
+  if ( blog.user.toString() !== user.id.toString() ) {
     return response.status(401).end() // unauthorized
   }
 

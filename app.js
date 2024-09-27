@@ -36,7 +36,7 @@ app.use(express.json())
 // app.use(middleware.requestLogger) // toggle this as needed so the console doesn't get bloated
 app.use(middleware.tokenExtractor)
 
-app.use('/api/blogs', blogsRouter)
+app.use('/api/blogs', blogsRouter) // userExtractor is used only for post and delete routes
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 

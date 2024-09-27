@@ -1,9 +1,9 @@
 POST http://localhost:3001/api/blogs
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2NmYzYjdmZGFiMmQ1MGViOGMzZTY2NzEiLCJpYXQiOjE3Mjc0MTc4ODMsImV4cCI6MTcyNzQyMTQ4M30.o27R0J6T8z6iGNcW3_gvvGeVsTsSDrqtYsHOxNQasYE
+Authorization: Bearer eyJhbGc1OiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2NmYzYjdmZGFiMmQ1MGViOGMzZTY2NzEiLCJpYXQiOjE3Mjc0NDA5MjQsImV4cCI6MTcyNzQ0NDUyNH0.JMWrP1PQ8EkOCqnKjaWn73v_R0WP33yoIH36-U60l1k
 
 {
-    "title": "Another Test Blog",
+    "title": "A Test Blog",
     "author": "Mdan22",
     "url": "mdan22.me",
     "likes": 0,
