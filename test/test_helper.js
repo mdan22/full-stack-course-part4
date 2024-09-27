@@ -1,5 +1,9 @@
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+
+const saltRounds = 10
 
 const initialBlogs = [
   {
@@ -42,18 +46,14 @@ const initialBlogs = [
 
 // can be used for creating a database object ID that
 // does not belong to any blog object in DB
-const nonExistingId = async () => {
+const nonExistingId = async ( user ) => {
   const blog = new Blog({
     title: 'willremovethissoon',
     url: 'http://www.u.arizona.edu/willremovethissoon',
+    user: user._id // added the user since it is now required
   })
-  await blog.save()
 
-  const id = blog._id
-
-  await blog.deleteOne()
-
-  return id.toJSON()
+  return blog._id.toJSON()
 }
 
 // can be used for checking the blogs stored in DB
@@ -67,11 +67,38 @@ const usersInDb = async () => {
   return users.map(u => u.toJSON())
 }
 
+const getAuthToken = async () => {
+  // create a test user
+  const hash = await bcrypt.hash('sekret', 10)
+
+  const user = new User({
+    username: 'testuser',
+    name: 'Test User',
+    passwordHash: hash
+  })
+  await user.save()
+
+  // create and sign a token
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+  const token = jwt.sign(userForToken, process.env.SECRET)
+
+  return { token, user }
+}
+
+const hashPassword = async ( password ) => {
+  return await bcrypt.hash(password, saltRounds)
+}
+
 const test_helper = {
   initialBlogs,
   nonExistingId,
   blogsInDb,
   usersInDb,
+  getAuthToken,
+  hashPassword,
 }
 
 module.exports = test_helper
