@@ -11,15 +11,6 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
-// extract token from request header
-const getTokenFrom = request => {
-  const authorization = request.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
-  }
-  return null
-}
-
 // new blogs can only be added if a valid token is send
 // in the header of the HTTP POST request.
 // the user associated with the token is designated as the creator of the blog.
@@ -30,7 +21,7 @@ blogsRouter.post('/', async (request, response) => {
   const body = request.body
 
   // check token validity
-  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
   if (!decodedToken.id) {
     return response.status(401).json({ error: 'token invalid' })
   }
